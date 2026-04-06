@@ -10,7 +10,7 @@
         <style>
             html, body, #map { width: 100%; height: 100%; padding: 0; margin: 0; }
             
-            /* Tiêu đề theo đúng yêu cầu của thầy */
+            /* Tiêu đề theo đúng mẫu */
             #header-title {
                 position: absolute;
                 top: 15px;
@@ -26,18 +26,16 @@
                 min-width: 500px;
             }
             
-            /* Style cho nhãn tên huyện */
             .district-label {
                 background: transparent;
                 border: none;
                 box-shadow: none;
                 font-weight: bold;
                 color: black;
-                font-size: 11px;
+                font-size: 10px;
                 text-shadow: 1px 1px 2px white;
             }
 
-            /* Chú giải (Legend) góc trên bên phải */
             .info.legend {
                 background: white;
                 padding: 10px;
@@ -63,19 +61,18 @@
 
         <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
         
-        <script src="layers/gadm41_VNM_2virtual_4.js"></script>
+        <script src="layers/gadm41_VNM_02_4.js"></script>
 
         <script>
         var map = L.map('map', {
             zoomControl:true, maxZoom:28, minZoom:1
         }).setView([21.0285, 105.8542], 10);
 
-        // Lớp nền OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: 'OpenStreetMap'
         }).addTo(map);
 
-        // Màu sắc phân cấp (Graduated) dựa trên số lượng giáo viên
+        // Hàm màu sắc theo yêu cầu đề bài
         function getColor(d) {
             return d > 1287 ? '#800026' :
                    d > 1034 ? '#BD0026' :
@@ -86,36 +83,30 @@
 
         function styleHanoi(feature) {
             return {
-                fillColor: getColor(feature.properties.GiaoVien_Num), // Tên cột dữ liệu
-                weight: 1.5,
+                fillColor: getColor(feature.properties.GiaoVien_Num), // Tên cột số liệu
+                weight: 1,
                 opacity: 1,
                 color: 'white',
                 fillOpacity: 0.7
             };
         }
 
-        function onEachFeature(feature, layer) {
-            // Hiện tên huyện luôn trên bản đồ
-            if (feature.properties && feature.properties.NAME_2) {
-                layer.bindTooltip(feature.properties.NAME_2, {
-                    permanent: true, 
-                    direction: 'center', 
-                    className: 'district-label'
-                });
-            }
-            layer.bindPopup("District: " + feature.properties.NAME_2 + "<br>Teachers: " + feature.properties.GiaoVien_Num);
-        }
-
-        // Nạp dữ liệu với biến json_hanoi_data đã tạo ở Bước 1
-        var layer_Hanoi = L.geoJson(json_hanoi_data, {
+        // ĐÃ SỬA: Gọi đúng tên biến json_gadm41_VNM_02_4
+        var layer_Hanoi = L.geoJson(json_gadm41_VNM_02_4, {
             style: styleHanoi,
-            onEachFeature: onEachFeature
+            onEachFeature: function (feature, layer) {
+                if (feature.properties && feature.properties.NAME_2) {
+                    layer.bindTooltip(feature.properties.NAME_2, {
+                        permanent: true, 
+                        direction: 'center', 
+                        className: 'district-label'
+                    });
+                }
+            }
         }).addTo(map);
 
-        // Tự động căn chỉnh màn hình vào vùng Hà Nội
         if (layer_Hanoi) { map.fitBounds(layer_Hanoi.getBounds()); }
 
-        // Tạo Chú giải (Legend)
         var legend = L.control({position: 'topright'});
         legend.onAdd = function (map) {
             var div = L.DomUtil.create('div', 'info legend');
