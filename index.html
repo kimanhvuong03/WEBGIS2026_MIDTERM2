@@ -10,7 +10,7 @@
         <style>
             html, body, #map { width: 100%; height: 100%; padding: 0; margin: 0; }
             
-            /* Tiêu đề theo đúng mẫu */
+            /* Tiêu đề theo đúng mẫu yêu cầu */
             #header-title {
                 position: absolute;
                 top: 15px;
@@ -18,7 +18,7 @@
                 transform: translateX(-50%);
                 z-index: 1000;
                 background: white;
-                padding: 10px 25px;
+                padding: 10px 20px;
                 border: 2px solid black;
                 text-align: center;
                 font-family: "Times New Roman", Times, serif;
@@ -26,6 +26,7 @@
                 min-width: 500px;
             }
             
+            /* Nhãn tên huyện hiển thị giữa vùng */
             .district-label {
                 background: transparent;
                 border: none;
@@ -36,6 +37,7 @@
                 text-shadow: 1px 1px 2px white;
             }
 
+            /* Chú thích bản đồ (Legend) */
             .info.legend {
                 background: white;
                 padding: 10px;
@@ -53,7 +55,7 @@
     </head>
     <body>
         <div id="header-title">
-            <b style="font-size: 16px; text-transform: uppercase;">MAP OF PRESCHOOL TEACHER DISTRIBUTION IN HANOI (Publicly available) 2023-2024</b><br>
+            <b style="font-size: 16px; text-transform: uppercase;">MAP OF PRE-SCHOOL TEACHER DISTRIBUTION IN HANOI 2023-2024</b><br>
             <span style="font-size: 14px;">2106080018 - Vương Thị Kim Anh</span>
         </div>
 
@@ -61,18 +63,19 @@
 
         <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
         
-        <script src="layers/gadm41_VNM_02_4.js"></script>
+        <script src="gadm41_VNM_02_4.js"></script>
 
         <script>
         var map = L.map('map', {
             zoomControl:true, maxZoom:28, minZoom:1
         }).setView([21.0285, 105.8542], 10);
 
+        // Lớp nền OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: 'OpenStreetMap'
         }).addTo(map);
 
-        // Hàm màu sắc theo yêu cầu đề bài
+        // Hàm phân màu Graduated theo số lượng giáo viên
         function getColor(d) {
             return d > 1287 ? '#800026' :
                    d > 1034 ? '#BD0026' :
@@ -83,7 +86,7 @@
 
         function styleHanoi(feature) {
             return {
-                fillColor: getColor(feature.properties.GiaoVien_Num), // Tên cột số liệu
+                fillColor: getColor(feature.properties.GiaoVien_Num), // Tên cột dữ liệu
                 weight: 1,
                 opacity: 1,
                 color: 'white',
@@ -91,7 +94,7 @@
             };
         }
 
-        // ĐÃ SỬA: Gọi đúng tên biến json_gadm41_VNM_02_4
+        // ĐÃ SỬA: Gọi đúng tên biến json_gadm41_VNM_02_4 từ file của bạn
         var layer_Hanoi = L.geoJson(json_gadm41_VNM_02_4, {
             style: styleHanoi,
             onEachFeature: function (feature, layer) {
@@ -102,11 +105,13 @@
                         className: 'district-label'
                     });
                 }
+                layer.bindPopup("Huyện: " + feature.properties.NAME_2 + "<br>Số GV: " + feature.properties.GiaoVien_Num);
             }
         }).addTo(map);
 
         if (layer_Hanoi) { map.fitBounds(layer_Hanoi.getBounds()); }
 
+        // Hiển thị Legend ở góc trên bên phải
         var legend = L.control({position: 'topright'});
         legend.onAdd = function (map) {
             var div = L.DomUtil.create('div', 'info legend');
